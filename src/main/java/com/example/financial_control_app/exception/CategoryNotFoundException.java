@@ -1,0 +1,7 @@
+package com.example.financial_control_app.exception;
+
+public class CategoryNotFoundException extends RuntimeException {
+    public CategoryNotFoundException(String message) {
+        super(message);
+    }
+}
