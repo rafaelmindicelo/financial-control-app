@@ -1,8 +1,10 @@
 package com.example.financial_control_app.expense;
 
+import com.example.financial_control_app.dto.expense.ExpenseFilterDTO;
+import com.example.financial_control_app.dto.expense.ExpenseFilterParams;
 import com.example.financial_control_app.exception.*;
-import com.example.financial_control_app.expense.dtos.ExpenseCreationRequest;
-import com.example.financial_control_app.expense.dtos.ExpenseCreationResponse;
+import com.example.financial_control_app.dto.expense.ExpenseCreationRequestDTO;
+import com.example.financial_control_app.dto.expense.ExpenseCreationResponseDTO;
 import com.example.financial_control_app.util.DateTimeUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,10 +32,10 @@ public class ExpenseController {
     }
 
     @PostMapping
-    public ResponseEntity<?> addExpense(@RequestBody ExpenseCreationRequest expenseToCreate) {
+    public ResponseEntity<?> addExpense(@RequestBody ExpenseCreationRequestDTO expenseToCreate) {
         try {
             expenseService.add(expenseToCreate);
-            return ResponseEntity.status(HttpStatus.CREATED).body(new ExpenseCreationResponse());
+            return ResponseEntity.status(HttpStatus.CREATED).body(new ExpenseCreationResponseDTO());
         } catch (ExpenseIllegalArgumentException | NullArgumentException ex) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorMessage(ex.getMessage()));
         } catch (CategoryNotFoundException | AccountNotFoundException ex) {
@@ -56,22 +58,14 @@ public class ExpenseController {
     @GetMapping("/{accountId}/date-range")
     public ResponseEntity<?> filterExpensesByDateRangeAndCategory(
             @PathVariable Long accountId,
-            @RequestParam(required = false) String startDate,
-            @RequestParam(required = false) String endDate,
-            @RequestParam(required = false) Integer categoryId) {
+            @RequestParam(required = false) ExpenseFilterDTO filter) {
 
         try {
-            LocalDateTime startDateTime = startDate == null ?
-                    LocalDateTime.of(LocalDateTime.now().getYear(), LocalDateTime.now().getMonth(), 1, 0, 0)
-                    : DateTimeUtils.parseToLocalDateTime(startDate);
+            ExpenseFilterParams filterParams = new ExpenseFilterParams(filter.startDate() != null ? DateTimeUtils.parseToLocalDateTime(filter.startDate(), false) : null,
+                    filter.endDate() != null ? DateTimeUtils.parseToLocalDateTime(filter.endDate(), true) : null,
+                    filter.categoryId());
 
-            LocalDateTime endDateTime = endDate == null ? LocalDateTime.now() : DateTimeUtils.parseToLocalDateTime(endDate);
-
-            System.out.println("Start Date: " + startDateTime);
-            System.out.println("End Date: " + endDateTime);
-            System.out.println("Category ID: " + categoryId);
-
-            List<ExpenseModel> filteredExpenses = expenseService.findByAccountIdAndDateBetweenAndCategoryId(accountId, startDateTime, endDateTime, categoryId);
+            List<ExpenseModel> filteredExpenses = expenseService.findByAccountIdAndDateBetweenAndCategoryId(accountId, filterParams);
             return ResponseEntity.status(HttpStatus.OK).body(filteredExpenses);
         } catch (AccountNotFoundException | CategoryNotFoundException ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorMessage(ex.getMessage()));

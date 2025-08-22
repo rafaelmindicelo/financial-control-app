@@ -1,9 +1,6 @@
 package com.example.financial_control_app.account;
 
-import com.example.financial_control_app.account.dtos.AccountBalanceResponse;
-import com.example.financial_control_app.account.dtos.AccountCreationRequest;
-import com.example.financial_control_app.account.dtos.AccountCreationResponse;
-import com.example.financial_control_app.account.dtos.AccountDepositResponse;
+import com.example.financial_control_app.dto.account.*;
 import com.example.financial_control_app.exception.AccountIllegalArgumentException;
 import com.example.financial_control_app.exception.AccountNotFoundException;
 import com.example.financial_control_app.exception.ErrorMessage;
@@ -21,20 +18,20 @@ public class AccountController {
     private final AccountService accountService;
 
     @PostMapping
-    public ResponseEntity<?> create(@RequestBody AccountCreationRequest accountToCreate) {
+    public ResponseEntity<?> create(@RequestBody AccountCreationRequestDTO accountToCreate) {
         try {
             accountService.create(accountToCreate);
-            return ResponseEntity.status(HttpStatus.CREATED).body(new AccountCreationResponse());
+            return ResponseEntity.status(HttpStatus.CREATED).body(new AccountCreationResponseDTO());
         } catch (AccountIllegalArgumentException ex) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorMessage(ex.getMessage()));
         }
     }
 
     @PostMapping("/{accountId}/deposit")
-    public ResponseEntity<?> deposit(@PathVariable Long accountId, @RequestParam double value) {
+    public ResponseEntity<?> deposit(@PathVariable Long accountId, @RequestParam DepositRequestDTO depositRequest) {
         try {
-            accountService.deposit(accountId, value);
-            return ResponseEntity.status(HttpStatus.CREATED).body(new AccountDepositResponse());
+            accountService.deposit(accountId, depositRequest);
+            return ResponseEntity.status(HttpStatus.CREATED).body(new AccountDepositResponseDTO());
 
         } catch (AccountNotFoundException ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorMessage(ex.getMessage()));
@@ -47,7 +44,7 @@ public class AccountController {
     public ResponseEntity<?> getBalance(@PathVariable Long accountId) {
         try {
             double balance = accountService.getBalance(accountId);
-            return ResponseEntity.status(HttpStatus.OK).body(new AccountBalanceResponse(balance));
+            return ResponseEntity.status(HttpStatus.OK).body(new AccountBalanceResponseDTO(balance));
         } catch (AccountNotFoundException ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorMessage(ex.getMessage()));
         }

@@ -4,11 +4,14 @@ import com.example.financial_control_app.account.AccountModel;
 import com.example.financial_control_app.account.AccountRepository;
 import com.example.financial_control_app.category.CategoryModel;
 import com.example.financial_control_app.category.CategoryRepository;
+import com.example.financial_control_app.dto.expense.ExpenseFilterDTO;
+import com.example.financial_control_app.dto.expense.ExpenseFilterParams;
 import com.example.financial_control_app.exception.AccountNotFoundException;
 import com.example.financial_control_app.exception.CategoryNotFoundException;
 import com.example.financial_control_app.exception.ExpenseIllegalArgumentException;
 import com.example.financial_control_app.exception.NullArgumentException;
-import com.example.financial_control_app.expense.dtos.ExpenseCreationRequest;
+import com.example.financial_control_app.dto.expense.ExpenseCreationRequestDTO;
+import com.example.financial_control_app.util.DateTimeUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -37,7 +40,7 @@ public class ExpenseService {
         return expenseRepository.findByAccountId(accountId);
     }
 
-    public void add(ExpenseCreationRequest expense) {
+    public void add(ExpenseCreationRequestDTO expense) {
         ExpenseModel expenseModel = new ExpenseModel();
 
         if (expense.getDescription() == null || expense.getDescription().isEmpty()) {
@@ -92,14 +95,22 @@ public class ExpenseService {
         return expenseRepository.findByAccountIdAndYear(accountId, startDate, endDate);
     }
 
-    public List<ExpenseModel> findByAccountIdAndDateBetweenAndCategoryId(Long accountId, LocalDateTime startDateTime, LocalDateTime endDateTime, Integer categoryId) {
+    public List<ExpenseModel> findByAccountIdAndDateBetweenAndCategoryId(Long accountId, ExpenseFilterParams filter) {
         accountRepository.findById(accountId)
                 .orElseThrow(() -> new AccountNotFoundException("Account with ID " + accountId + " not found"));
 
-        if (categoryId != null) {
-            categoryRepository.findById(categoryId).orElseThrow(() -> new CategoryNotFoundException("Category with ID " + categoryId + " not found"));
+        if (filter.categoryId() != null) {
+            categoryRepository.findById(filter.categoryId()).orElseThrow(() -> new CategoryNotFoundException("Category with ID " + filter.categoryId() + " not found"));
         }
 
-        return expenseRepository.findByAccountIdAndDateBetweenAndCategoryId(accountId, startDateTime, endDateTime, categoryId);
+        LocalDateTime startDateTime = filter.startDate() == null ?
+                LocalDateTime.of(LocalDateTime.now().getYear(), LocalDateTime.now().getMonth(), 1, 0, 0)
+                : filter.startDate();
+
+        LocalDateTime endDateTime = filter.endDate() == null ?
+                LocalDateTime.now()
+                : filter.endDate();
+
+        return expenseRepository.findByAccountIdAndDateBetweenAndCategoryId(accountId, startDateTime, endDateTime, filter.categoryId());
     }
 }
