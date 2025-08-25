@@ -1,18 +1,13 @@
 package com.example.financial_control_app.account;
 
+import com.example.financial_control_app.exception.AccountIllegalArgumentException;
 import com.example.financial_control_app.expense.ExpenseModel;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.util.List;
 
-@AllArgsConstructor
-@NoArgsConstructor
-@Setter
 @Getter
 @Entity
 @Table(name = "tbl_account")
@@ -30,4 +25,28 @@ public class AccountModel {
     @OneToMany(mappedBy = "account")
     @JsonManagedReference
     private List<ExpenseModel> expenses;
+
+    protected AccountModel() {
+    }
+
+    public AccountModel(String owner, double balance) {
+        boolean isOwnerLengthExceeded = owner != null && owner.length() > 50;
+        if (owner == null || owner.isBlank() || isOwnerLengthExceeded) {
+            throw new AccountIllegalArgumentException("Account owner cannot be null or empty or exceed 50 characters");
+        }
+
+        if (balance < 0) {
+            throw new AccountIllegalArgumentException("Initial balance cannot be negative");
+        }
+
+        this.owner = owner;
+        this.balance = balance;
+    }
+
+    public void deposit(double amount) {
+        if (amount <= 0) {
+            throw new AccountIllegalArgumentException("Deposit amount must be greater than zero");
+        }
+        this.balance += amount;
+    }
 }

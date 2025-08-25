@@ -61,7 +61,8 @@ public class ExpenseController {
             @RequestParam(required = false) ExpenseFilterDTO filter) {
 
         try {
-            ExpenseFilterParams filterParams = new ExpenseFilterParams(filter.startDate() != null ? DateTimeUtils.parseToLocalDateTime(filter.startDate(), false) : null,
+            ExpenseFilterParams filterParams = new ExpenseFilterParams(
+                    filter.startDate() != null ? DateTimeUtils.parseToLocalDateTime(filter.startDate(), false) : null,
                     filter.endDate() != null ? DateTimeUtils.parseToLocalDateTime(filter.endDate(), true) : null,
                     filter.categoryId());
 

@@ -16,23 +16,11 @@ public class AccountService {
     AccountRepository accountRepository;
 
     public void create(AccountCreationRequestDTO account) {
-        AccountModel accountToCreate = new AccountModel();
-
-        if (account.owner() == null || account.owner().isEmpty()) {
-            throw new AccountIllegalArgumentException("Account owner cannot be null or empty");
-        }
-
         accountRepository.findByOwner(account.owner()).ifPresent(existingAccount -> {
             throw new AccountIllegalArgumentException("An account with this owner already exists");
         });
 
-        accountToCreate.setOwner(account.owner());
-
-        if (account.balance() < 0) {
-            throw new AccountIllegalArgumentException("Initial balance cannot be negative");
-        }
-
-        accountToCreate.setBalance(account.balance());
+        AccountModel accountToCreate = new AccountModel(account.owner(), account.balance());
 
         accountRepository.save(accountToCreate);
     }
@@ -41,11 +29,7 @@ public class AccountService {
         AccountModel account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new AccountNotFoundException("Account with ID " + accountId + " does not exist"));
 
-        if (depositRequest.value() <= 0) {
-            throw new AccountIllegalArgumentException("Deposit value must be greater than zero");
-        }
-
-        account.setBalance(account.getBalance() + depositRequest.value());
+        account.deposit(depositRequest.value());
         accountRepository.save(account);
     }
 
@@ -57,6 +41,6 @@ public class AccountService {
     }
 
     public List<AccountModel> getAllAccounts() {
-        return (List<AccountModel>) accountRepository.findAll();
+        return accountRepository.findAll();
     }
 }
