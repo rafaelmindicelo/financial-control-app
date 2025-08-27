@@ -2,8 +2,8 @@ package com.example.financial_control_app.account;
 
 import com.example.financial_control_app.dto.account.AccountCreationRequestDTO;
 import com.example.financial_control_app.dto.account.DepositRequestDTO;
-import com.example.financial_control_app.exception.AccountNotFoundException;
-import com.example.financial_control_app.exception.AccountIllegalArgumentException;
+import com.example.financial_control_app.exception.account.AccountNotFoundException;
+import com.example.financial_control_app.exception.account.AccountIllegalArgumentException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,11 +16,11 @@ public class AccountService {
     AccountRepository accountRepository;
 
     public void create(AccountCreationRequestDTO account) {
-        accountRepository.findByOwner(account.owner()).ifPresent(existingAccount -> {
-            throw new AccountIllegalArgumentException("An account with this owner already exists");
+        accountRepository.findByDescription(account.getDescription()).ifPresent(existingAccount -> {
+            throw new AccountIllegalArgumentException("An account with this description already exists");
         });
 
-        AccountModel accountToCreate = new AccountModel(account.owner(), account.balance());
+        AccountModel accountToCreate = new AccountModel(account.getDescription(), account.getBalance());
 
         accountRepository.save(accountToCreate);
     }

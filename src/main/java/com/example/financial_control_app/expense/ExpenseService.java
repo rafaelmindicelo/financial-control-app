@@ -4,14 +4,12 @@ import com.example.financial_control_app.account.AccountModel;
 import com.example.financial_control_app.account.AccountRepository;
 import com.example.financial_control_app.category.CategoryModel;
 import com.example.financial_control_app.category.CategoryRepository;
-import com.example.financial_control_app.dto.expense.ExpenseFilterDTO;
 import com.example.financial_control_app.dto.expense.ExpenseFilterParams;
-import com.example.financial_control_app.exception.AccountNotFoundException;
-import com.example.financial_control_app.exception.CategoryNotFoundException;
-import com.example.financial_control_app.exception.ExpenseIllegalArgumentException;
-import com.example.financial_control_app.exception.NullArgumentException;
+import com.example.financial_control_app.exception.account.AccountIllegalArgumentException;
+import com.example.financial_control_app.exception.account.AccountNotFoundException;
+import com.example.financial_control_app.exception.category.CategoryNotFoundException;
+import com.example.financial_control_app.exception.expense.ExpenseIllegalArgumentException;
 import com.example.financial_control_app.dto.expense.ExpenseCreationRequestDTO;
-import com.example.financial_control_app.util.DateTimeUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -70,7 +68,7 @@ public class ExpenseService {
         expenseModel.setCategory(categoryModel.get());
 
         if (expense.getAccountId() == null) {
-            throw new NullArgumentException("Account ID cannot be null");
+            throw new AccountIllegalArgumentException("Account ID cannot be null");
         }
 
         AccountModel account = accountRepository.findById(expense.getAccountId())

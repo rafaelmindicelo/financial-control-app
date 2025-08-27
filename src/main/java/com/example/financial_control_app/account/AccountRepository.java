@@ -7,5 +7,5 @@ import java.util.Optional;
 
 @Repository
 public interface AccountRepository extends JpaRepository<AccountModel, Long> {
-    Optional<Object> findByOwner(String owner);
+    Optional<Object> findByDescription(String description);
 }

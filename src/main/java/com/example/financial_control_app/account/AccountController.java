@@ -1,13 +1,15 @@
 package com.example.financial_control_app.account;
 
 import com.example.financial_control_app.dto.account.*;
-import com.example.financial_control_app.exception.AccountIllegalArgumentException;
-import com.example.financial_control_app.exception.AccountNotFoundException;
+import com.example.financial_control_app.exception.account.AccountIllegalArgumentException;
+import com.example.financial_control_app.exception.account.AccountNotFoundException;
 import com.example.financial_control_app.exception.ErrorMessage;
+import com.example.financial_control_app.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
@@ -17,9 +19,10 @@ public class AccountController {
     @Autowired
     private final AccountService accountService;
 
-    @PostMapping
-    public ResponseEntity<?> create(@RequestBody AccountCreationRequestDTO accountToCreate) {
+    @PostMapping("/register")
+    public ResponseEntity<?> create(@RequestBody AccountCreationRequestDTO accountToCreate, @AuthenticationPrincipal CustomUserDetails user) {
         try {
+            accountToCreate.setUserId(user.getUserId());
             accountService.create(accountToCreate);
             return ResponseEntity.status(HttpStatus.CREATED).body(new AccountCreationResponseDTO());
         } catch (AccountIllegalArgumentException ex) {
@@ -27,9 +30,10 @@ public class AccountController {
         }
     }
 
-    @PostMapping("/{accountId}/deposit")
-    public ResponseEntity<?> deposit(@PathVariable Long accountId, @RequestParam DepositRequestDTO depositRequest) {
+    @PostMapping("/deposit")
+    public ResponseEntity<?> deposit(@RequestParam DepositRequestDTO depositRequest, @AuthenticationPrincipal CustomUserDetails user) {
         try {
+            Long accountId = user.getAccountId();
             accountService.deposit(accountId, depositRequest);
             return ResponseEntity.status(HttpStatus.CREATED).body(new AccountDepositResponseDTO());
 
@@ -40,9 +44,10 @@ public class AccountController {
         }
     }
 
-    @GetMapping("/{accountId}/balance")
-    public ResponseEntity<?> getBalance(@PathVariable Long accountId) {
+    @GetMapping("/balance")
+    public ResponseEntity<?> getBalance(@AuthenticationPrincipal CustomUserDetails user) {
         try {
+            Long accountId = user.getAccountId();
             double balance = accountService.getBalance(accountId);
             return ResponseEntity.status(HttpStatus.OK).body(new AccountBalanceResponseDTO(balance));
         } catch (AccountNotFoundException ex) {

@@ -5,6 +5,10 @@ import com.example.financial_control_app.dto.expense.ExpenseFilterParams;
 import com.example.financial_control_app.exception.*;
 import com.example.financial_control_app.dto.expense.ExpenseCreationRequestDTO;
 import com.example.financial_control_app.dto.expense.ExpenseCreationResponseDTO;
+import com.example.financial_control_app.exception.account.AccountIllegalArgumentException;
+import com.example.financial_control_app.exception.account.AccountNotFoundException;
+import com.example.financial_control_app.exception.category.CategoryNotFoundException;
+import com.example.financial_control_app.exception.expense.ExpenseIllegalArgumentException;
 import com.example.financial_control_app.util.DateTimeUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +16,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -36,7 +39,7 @@ public class ExpenseController {
         try {
             expenseService.add(expenseToCreate);
             return ResponseEntity.status(HttpStatus.CREATED).body(new ExpenseCreationResponseDTO());
-        } catch (ExpenseIllegalArgumentException | NullArgumentException ex) {
+        } catch (ExpenseIllegalArgumentException | AccountIllegalArgumentException ex) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorMessage(ex.getMessage()));
         } catch (CategoryNotFoundException | AccountNotFoundException ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorMessage(ex.getMessage()));
