@@ -1,9 +1,8 @@
 package com.example.financial_control_app.account;
 
 import com.example.financial_control_app.dto.account.*;
-import com.example.financial_control_app.exception.account.AccountIllegalArgumentException;
-import com.example.financial_control_app.exception.account.AccountNotFoundException;
 import com.example.financial_control_app.exception.ErrorMessage;
+import com.example.financial_control_app.exception.account.*;
 import com.example.financial_control_app.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +24,8 @@ public class AccountController {
             accountToCreate.setUserId(user.getUserId());
             accountService.create(accountToCreate);
             return ResponseEntity.status(HttpStatus.CREATED).body(new AccountCreationResponseDTO());
-        } catch (AccountIllegalArgumentException ex) {
+        } catch (AccountDescriptionAlreadyExistsException | AccountDescriptionInvalidException |
+                 AccountInvalidBalanceException ex) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorMessage(ex.getMessage()));
         }
     }
@@ -39,7 +39,7 @@ public class AccountController {
 
         } catch (AccountNotFoundException ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorMessage(ex.getMessage()));
-        } catch (AccountIllegalArgumentException ex) {
+        } catch (AccountInvalidDepositAmountException ex) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorMessage(ex.getMessage()));
         }
     }

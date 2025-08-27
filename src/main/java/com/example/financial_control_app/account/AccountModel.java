@@ -1,6 +1,8 @@
 package com.example.financial_control_app.account;
 
-import com.example.financial_control_app.exception.account.AccountIllegalArgumentException;
+import com.example.financial_control_app.exception.account.AccountDescriptionInvalidException;
+import com.example.financial_control_app.exception.account.AccountInvalidBalanceException;
+import com.example.financial_control_app.exception.account.AccountInvalidDepositAmountException;
 import com.example.financial_control_app.expense.ExpenseModel;
 import com.example.financial_control_app.user.UserModel;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -37,11 +39,11 @@ public class AccountModel {
     public AccountModel(String description, double balance) {
         boolean isDescriptionLengthExceeded = description != null && description.length() > 50;
         if (description == null || description.isBlank() || isDescriptionLengthExceeded) {
-            throw new AccountIllegalArgumentException("Account description cannot be null or empty or exceed 50 characters");
+            throw new AccountDescriptionInvalidException("Account description cannot be null or empty or exceed 50 characters");
         }
 
         if (balance < 0) {
-            throw new AccountIllegalArgumentException("Initial balance cannot be negative");
+            throw new AccountInvalidBalanceException("Initial balance cannot be negative");
         }
 
         this.description = description;
@@ -50,7 +52,7 @@ public class AccountModel {
 
     public void deposit(double amount) {
         if (amount <= 0) {
-            throw new AccountIllegalArgumentException("Deposit amount must be greater than zero");
+            throw new AccountInvalidDepositAmountException("Deposit amount must be greater than zero");
         }
         this.balance += amount;
     }

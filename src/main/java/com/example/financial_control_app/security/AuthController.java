@@ -8,7 +8,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,26 +30,24 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody UserLoginRequestDTO request) {
-        System.out.println("Login attempt for user: " + request.username());
-        System.out.println("Password: " + request.password());
         try {
-            // 1 - autentica usuário/senha
-            Authentication authentication = authenticationManager.authenticate(
+            // 1 - authenticates user/password
+            authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.username(), request.password())
             );
 
-            // 2 - recupera usuário do banco
+            // 2 - recover user from DB
             UserModel user = userRepository.findByUsername(request.username())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+                    .orElseThrow(RuntimeException::new);
 
-            // 3 - gera token com claims
+            // 3 - generates token with claims
             String token = jwtService.generate(
                     user.getId(),
                     user.getAccount() != null ? user.getAccount().getId() : null,
                     request.username()
             );
 
-            // 4 - retorna token
+            // 4 - returns token
             return ResponseEntity.ok(new UserLoginResponseDTO(token));
 
         } catch (Exception e) {

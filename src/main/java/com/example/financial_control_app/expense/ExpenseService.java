@@ -4,12 +4,13 @@ import com.example.financial_control_app.account.AccountModel;
 import com.example.financial_control_app.account.AccountRepository;
 import com.example.financial_control_app.category.CategoryModel;
 import com.example.financial_control_app.category.CategoryRepository;
+import com.example.financial_control_app.dto.expense.ExpenseCreationRequestDTO;
 import com.example.financial_control_app.dto.expense.ExpenseFilterParams;
-import com.example.financial_control_app.exception.account.AccountIllegalArgumentException;
+import com.example.financial_control_app.exception.account.AccountIdNullException;
 import com.example.financial_control_app.exception.account.AccountNotFoundException;
 import com.example.financial_control_app.exception.category.CategoryNotFoundException;
-import com.example.financial_control_app.exception.expense.ExpenseIllegalArgumentException;
-import com.example.financial_control_app.dto.expense.ExpenseCreationRequestDTO;
+import com.example.financial_control_app.exception.expense.ExpenseDateInvalidException;
+import com.example.financial_control_app.exception.expense.ExpenseYearInvalidException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,67 +39,56 @@ public class ExpenseService {
         return expenseRepository.findByAccountId(accountId);
     }
 
-    public void add(ExpenseCreationRequestDTO expense) {
-        ExpenseModel expenseModel = new ExpenseModel();
-
-        if (expense.getDescription() == null || expense.getDescription().isEmpty()) {
-            throw new ExpenseIllegalArgumentException("Expense name cannot be null or empty");
-        }
-
-        expenseModel.setDescription(expense.getDescription());
-
-        if (expense.getAmount() <= 0) {
-            throw new ExpenseIllegalArgumentException("Expense amount must be greater than zero");
-        }
-
-        expenseModel.setAmount(expense.getAmount());
-
-        if (expense.getDate() == null) {
-            expense.setDate(LocalDateTime.now());
-        }
-
-        expenseModel.setDate(expense.getDate());
-
+    public void create(ExpenseCreationRequestDTO expense) {
         Optional<CategoryModel> categoryModel = categoryRepository.findById(expense.getCategoryId());
 
         if (categoryModel.isEmpty()) {
             throw new CategoryNotFoundException("Category with ID " + expense.getCategoryId() + " not found");
         }
 
-        expenseModel.setCategory(categoryModel.get());
-
-        if (expense.getAccountId() == null) {
-            throw new AccountIllegalArgumentException("Account ID cannot be null");
-        }
-
         AccountModel account = accountRepository.findById(expense.getAccountId())
                 .orElseThrow(() -> new AccountNotFoundException("Account with ID " + expense.getAccountId() + " not found"));
 
-        expenseModel.setAccount(account);
+
+        ExpenseModel expenseModel = new ExpenseModel(expense.getDescription(), expense.getAmount(), expense.getDate(), categoryModel.get(), account);
 
         expenseRepository.save(expenseModel);
     }
 
     public List<ExpenseModel> findByAccountIdAndYear(Long accountId, int year) {
+        if (accountId == null) {
+            throw new AccountIdNullException("There are no expenses for an account without ID");
+        }
+
         accountRepository.findById(accountId)
                 .orElseThrow(() -> new AccountNotFoundException("Account with ID " + accountId + " not found"));
 
         if (year < 1900 || year > LocalDate.now().getYear()) {
-            throw new ExpenseIllegalArgumentException("Year must be between 1900 and the current year");
+            throw new ExpenseYearInvalidException("Year must be between 1900 and the current year");
         }
 
         LocalDateTime startDate = LocalDateTime.of(year, 1, 1, 0, 0);
-        LocalDateTime endDate = LocalDateTime.of(year, 12, 31, 23, 59);
+        LocalDateTime endDate = year == LocalDateTime.now().getYear() ?
+                LocalDateTime.now() :
+                LocalDateTime.of(year, 12, 31, 23, 59);
 
         return expenseRepository.findByAccountIdAndYear(accountId, startDate, endDate);
     }
 
     public List<ExpenseModel> findByAccountIdAndDateBetweenAndCategoryId(Long accountId, ExpenseFilterParams filter) {
+        if (accountId == null) {
+            throw new AccountIdNullException("There are no expenses for an account without ID");
+        }
+
         accountRepository.findById(accountId)
                 .orElseThrow(() -> new AccountNotFoundException("Account with ID " + accountId + " not found"));
 
         if (filter.categoryId() != null) {
             categoryRepository.findById(filter.categoryId()).orElseThrow(() -> new CategoryNotFoundException("Category with ID " + filter.categoryId() + " not found"));
+        }
+
+        if (filter.startDate() != null && filter.endDate() != null && filter.startDate().isAfter(filter.endDate())) {
+            throw new ExpenseDateInvalidException("Start date cannot be after end date");
         }
 
         LocalDateTime startDateTime = filter.startDate() == null ?

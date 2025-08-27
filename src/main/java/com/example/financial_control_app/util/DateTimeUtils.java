@@ -14,7 +14,7 @@ public abstract class DateTimeUtils {
                 return endDate ?
                         LocalDate.parse(dateStr).atTime(LocalTime.now()) :
                         LocalDate.parse(dateStr).atStartOfDay();
-            } catch (java.time.format.DateTimeParseException ex) {
+            } catch (DateTimeParseException ex) {
                 throw e;
             }
         }
