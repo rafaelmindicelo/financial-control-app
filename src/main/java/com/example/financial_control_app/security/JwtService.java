@@ -4,12 +4,10 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Map;
 
 @Component
 public class JwtService {

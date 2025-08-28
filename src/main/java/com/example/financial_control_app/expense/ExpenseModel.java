@@ -39,6 +39,9 @@ public class ExpenseModel {
     @JsonBackReference
     private AccountModel account;
 
+    public ExpenseModel() {
+    }
+
     public ExpenseModel(String description, double amount, LocalDateTime date, CategoryModel category, AccountModel account) {
         if (description == null || description.isEmpty() || description.length() > 100) {
             throw new ExpenseDescriptionInvalidException("Expense description cannot be null or empty and must be less than 100 characters");

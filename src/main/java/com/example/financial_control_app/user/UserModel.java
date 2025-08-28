@@ -4,8 +4,10 @@ import com.example.financial_control_app.account.AccountModel;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
+@Setter
 @Entity
 @Table(name = "tbl_user")
 @NoArgsConstructor

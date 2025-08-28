@@ -8,10 +8,12 @@ import com.example.financial_control_app.user.UserModel;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 
 @Getter
+@Setter
 @Entity
 @Table(name = "tbl_account")
 public class AccountModel {
@@ -30,10 +32,10 @@ public class AccountModel {
     private List<ExpenseModel> expenses;
 
     @OneToOne(mappedBy = "account")
-    //@JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private UserModel user;
 
-    protected AccountModel() {
+    public AccountModel() {
     }
 
     public AccountModel(String description, double balance) {
